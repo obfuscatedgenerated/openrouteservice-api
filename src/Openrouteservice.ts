@@ -1,19 +1,21 @@
-import { FeatureCollection, LineString, Polygon, Position } from "geojson";
+import { flatten, unflatten } from "flat";
+import { FeatureCollection, LineString, Point, Polygon, Position } from "geojson";
 
 type Metadata = {
-    metadata: {
-        attribution: string;
-        timestamp: number;
-        engine: {
-            version: string;
-            build_date: string;
-            graph_date: string;
-        }
+    version?: string;
+    attribution: string;
+    timestamp: number;
+    engine: {
+        version: string;
+        build_date?: string;
+        graph_date?: string;
+        author?: string;
+        name?: string;
     }
 }
 
-type BasicDirectionsResponse = FeatureCollection<LineString, DirectionsProperties> & Metadata & {
-    metadata: {
+type BasicDirectionsResponse = FeatureCollection<LineString, DirectionsProperties> & {
+    metadata: Metadata & {
         service: 'routing';
         query: {
             coordinates: [ Position, Position ];
@@ -239,8 +241,8 @@ interface DirectionsRoute {
     warnings?: DirectionsWarnings[];
 }
 
-type DirectionsResponsePartial = Metadata & {
-    metadata: {
+type DirectionsResponsePartial = {
+    metadata: Metadata & {
         service: 'routing';
         query: DirectionsQuery & {
             profile: Profile;
@@ -310,8 +312,8 @@ type IsochronesQuery = {
     units?: DirectionsUnits;
 }
 
-type IsochronesResponse = Metadata & FeatureCollection<Polygon, IsochronesProperties> & {
-    metadata: {
+type IsochronesResponse = FeatureCollection<Polygon, IsochronesProperties> & {
+    metadata: Metadata & {
         service: 'isochrones';
         query: IsochronesQuery & {
             profile: Profile
@@ -340,8 +342,8 @@ interface MatrixLocation {
     name?: string;
 }
 
-type MatrixResponse = Metadata & {
-    metadata: {
+type MatrixResponse = {
+    metadata: Metadata & {
         service: 'matrix';
         query: MatrixQuery & {
             profile: Profile;
@@ -352,6 +354,152 @@ type MatrixResponse = Metadata & {
     durations: number[][];
     destinations: MatrixLocation[];
     sources: MatrixLocation[];
+}
+
+enum GeocodeSearchSource {
+    OPENSTREETMAP = 'osm',
+    OPENADDRESSES = 'oa',
+    WHOS_ON_FIRST = 'wof',
+    GEONAMES = 'gn'
+}
+
+enum GeocodeSearchLayer {
+    ADDRESS = 'address',
+    VENUE = 'venue',
+    NEIGHBORHOOD = 'neighbourhood',
+    LOCALITY = 'locality',
+    BOROUGH = 'borough',
+    LOCAL_ADMINISTRATION = 'localadmin',
+    COUNTY = 'county',
+    MACRO_COUNTY = 'macrocounty',
+    REGION = 'region',
+    MACRO_REGION = 'macroregion',
+    COUNTRY = 'country',
+    COARSE = 'coarse',
+}
+
+type GeocodeStructuredQuery = Partial<{
+    address: string;
+    neighborhood: string;
+    country: string;
+    postalcode: string;
+    region: string;
+    county: string;
+    locality: string;
+    borough: string;
+}>;
+
+type GeocodeQuery = Partial<{
+    focus: {
+        point?: {
+            lon: number;
+            lat?: number;
+        }
+    }
+    boundary: Partial<{
+        rect: {
+            min_lon: number;
+            min_lat?: number;
+            max_lon?: number;
+            max_lat?: number;
+        }
+        circle: {
+            lon: number;
+            lat?: number;
+            radius?: number;
+        }
+        gid: string;
+        country: string;
+    }>;
+    sources: GeocodeSearchSource[];
+    layers: GeocodeSearchLayer[];
+}>;
+
+type GeocodeResponse = FeatureCollection<Point, GeocodeProperties> & {
+    geocoding: Metadata & {
+        query: GeocodeQuery & Partial<GeocodeReverseQuery> & {
+            size: number;
+            layers?: string[];
+            private: boolean;
+            lang: {
+                name: string;
+                iso6391: string;
+                iso6393: string;
+                via: string;
+                defaulted: boolean;
+            }
+            querySize: number;
+            parser?: string;
+            parsed_text?: {
+                subject: string;
+            }
+            warnings?: DirectionsWarnings[];
+        }
+    }
+}
+
+interface GeocodeProperties {
+    id: string;
+    gid: string;
+    layer: string;
+    source: string;
+    source_id: string;
+    name: string;
+    housenumber?: string;
+    street?: string;
+    confidence?: number;
+    match_type?: string;
+    postalcode?: string;
+    accuracy?: string;
+    country?: string;
+    country_gid?: string;
+    country_a?: string;
+    macroregion?: string;
+    macroregion_gid?: string;
+    macroregion_a?: string;
+    region?: string;
+    region_gid?: string;
+    region_a?: string;
+    county?: string;
+    county_gid?: string;
+    county_a?: string;
+    localadmin?: string;
+    localadmin_gid?: string;
+    localadmin_a?: string;
+    locality?: string;
+    locality_gid?: string;
+    locality_a?: string;
+    neighbourhood?: string;
+    neighbourhood_gid?: string;
+    neighbourhood_a?: string;
+    borough?: string;
+    borough_gid?: string;
+    borough_a?: string;
+    continent?: string;
+    continent_gid?: string;
+    label: string;
+    addendum: {
+        osm: {
+            wheelchair: string;
+            website: string;
+            phone: string;
+        }
+    }
+}
+
+type GeocodeReverseQuery = {
+    point: {
+        lon: number;
+        lat: number;
+    }
+    boundary?: {
+        circle?: {
+            radius: number;
+        }
+        country?: string;
+    }
+    sources?: GeocodeSearchSource[];
+    layers?: GeocodeSearchLayer[];
 }
 
 enum Profile {
@@ -450,6 +598,70 @@ export default class Openrouteservice {
             JSON.stringify(query)
         );
 
+    static unflattenResult(res: any) {
+        res.geocoding.query = unflatten(res.geocoding.query);
+        return res;
+    }
+
+    async getGeocodeSearch(query: string, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse>;
+    async getGeocodeSearch(query: GeocodeStructuredQuery, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse>;
+    async getGeocodeSearch(query: string | GeocodeStructuredQuery, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse> {
+        const structured = typeof query !== 'string';
+        
+        const params: any = flatten({
+            ...(structured ? query : {}),
+            ...(additionalQuery ?? {})
+        });
+
+        if (!structured)
+            params.text = query;
+
+        if (additionalQuery?.sources)
+            params.sources = additionalQuery.sources.join(',');
+
+        if (additionalQuery?.layers)
+            params.layers = additionalQuery.layers.join(',');
+
+        return this.orsFetch(
+            '/geocode/search' + (structured ? '/structured' : ''),
+            false,
+            new URLSearchParams(params).toString()
+        ).then(Openrouteservice.unflattenResult);
+    }
+
+    async getGeocodeAutocomplete(text: string, query?: GeocodeQuery): Promise<GeocodeResponse> {
+        const params: any = flatten(query ?? {});
+
+        params.text = text;
+
+        if (query?.sources)
+            params.sources = query.sources.join(',');
+
+        if (query?.layers)
+            params.layers = query.layers.join(',');
+
+        return this.orsFetch(
+            '/geocode/autocomplete',
+            false,
+            new URLSearchParams(params).toString()
+        ).then(Openrouteservice.unflattenResult);
+    }
+
+    async getGeocodeReverse(query: GeocodeReverseQuery): Promise<GeocodeResponse> {
+        const params: any = flatten(query);
+
+        if (query.sources)
+            params.sources = query.sources.join(',');
+
+        if (query.layers)
+            params.layers = query.layers.join(',');
+
+        return this.orsFetch(
+            '/geocode/reverse',
+            false,
+            new URLSearchParams(params).toString()
+        ).then(Openrouteservice.unflattenResult);
+    }
 
     static decodePolyline(encodedPolyline: string, includeElevation?: boolean): Position[] {
         const points = [];

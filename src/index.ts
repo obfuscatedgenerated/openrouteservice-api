@@ -13,30 +13,30 @@ if (!API_KEY)
     //     [-121.86597210162844, 37.424061505151634]
     // );
 
-    const directions = await ors.getDirections(
-        Openrouteservice.options.profiles.DRIVING_CAR,
-        Openrouteservice.options.directions.format.JSON,
-        {
-            coordinates: [
-                [-121.86592918628558, 37.41513158647777],
-                [-121.86597210162844, 37.424061505151634]
-            ],
-            // attributes: [
-            //     Openrouteservice.options.directions.attributes.AVERAGE_SPEED
-            // ],
-            // maneuvers: true,
-            extra_info: [
-                Openrouteservice.options.directions.extraInfo.COUNTRY_INFO,
-                Openrouteservice.options.directions.extraInfo.GREEN,
-                Openrouteservice.options.directions.extraInfo.NOISE,
-                Openrouteservice.options.directions.extraInfo.TOLLWAYS,
-                Openrouteservice.options.directions.extraInfo.ROAD_ACCESS_RESTRICTIONS,
-                Openrouteservice.options.directions.extraInfo.CSV
-            ]
-        }
-    );
+    // const directions = await ors.getDirections(
+    //     Openrouteservice.options.profiles.DRIVING_CAR,
+    //     Openrouteservice.options.directions.format.JSON,
+    //     {
+    //         coordinates: [
+    //             [-121.86592918628558, 37.41513158647777],
+    //             [-121.86597210162844, 37.424061505151634]
+    //         ],
+    //         // attributes: [
+    //         //     Openrouteservice.options.directions.attributes.AVERAGE_SPEED
+    //         // ],
+    //         // maneuvers: true,
+    //         // extra_info: [
+    //         //     Openrouteservice.options.directions.extraInfo.COUNTRY_INFO,
+    //         //     Openrouteservice.options.directions.extraInfo.GREEN,
+    //         //     Openrouteservice.options.directions.extraInfo.NOISE,
+    //         //     Openrouteservice.options.directions.extraInfo.TOLLWAYS,
+    //         //     Openrouteservice.options.directions.extraInfo.ROAD_ACCESS_RESTRICTIONS,
+    //         //     Openrouteservice.options.directions.extraInfo.CSV
+    //         // ]
+    //     }
+    // );
 
-    console.log(directions)
+    // console.log(directions)
     // console.log(Openrouteservice.decodePolyline(directions.routes[0].geometry, true))
     
     // const isochrones = await ors.getIsochrones(
@@ -81,4 +81,25 @@ if (!API_KEY)
     // }, {})
 
     // console.table(formatedMatrix);
+
+    // const geocode = await ors.getGeocodeSearch('Daeho');
+    // console.log(geocode)
+
+    // const autocomplete = await ors.getGeocodeAutocomplete('Toky');
+    // console.log(autocomplete)
+
+    // const structuredGeocode = await ors.getGeocodeSearch({
+    //     address: '600 Montgomery St',
+    //     locality: 'San Francisco'
+    // });
+    // console.log(structuredGeocode.features[0]);
+    
+    // const reverseGeocode = await ors.getGeocodeReverse({
+    //     point: {
+    //         lon: -122.402721, 
+    //         lat: 37.795153
+    //     }
+    // });
+
+    // console.log(reverseGeocode.features[0]);
 })();

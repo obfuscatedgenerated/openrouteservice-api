@@ -13,9 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
+    "flat": "^5.0.2",
     "openrouteservice-js": "^0.3.0"
   },
   "devDependencies": {
+    "@types/flat": "^5.0.2",
     "@types/geojson": "^7946.0.10",
     "@types/node": "^20.4.5",
     "nodemon": "^3.0.1",
