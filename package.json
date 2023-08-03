@@ -1,0 +1,24 @@
+{
+  "name": "openrouteservice-api",
+  "version": "0.1.0",
+  "description": "An API for Openrouteservice",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index",
+    "dev": "nodemon -w src -e ts -x 'npm start'"
+  },
+  "keywords": [],
+  "author": "Brian Vo",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "openrouteservice-js": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.10",
+    "@types/node": "^20.4.5",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.1.6"
+  }
+}
