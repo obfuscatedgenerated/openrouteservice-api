@@ -132,15 +132,6 @@ interface DirectionsOptions {
         surface_quality_known?: boolean;
         allow_unsuitable?: boolean;
     }
-    preference?: DirectionsPreference;
-    radiuses?: number[];
-    roundabout_exits?: boolean;
-    skip_segments?: number[];
-    supress_warnings?: boolean;
-    units?: DirectionsUnits;
-    geometry?: boolean;
-    bearings?: number[][];
-    maximum_speed?: number;
 }
 
 type DirectionsQuery = {
@@ -161,6 +152,15 @@ type DirectionsQuery = {
     language?: string;
     maneuvers?: boolean;
     options?: DirectionsOptions;
+    preference?: DirectionsPreference;
+    radiuses?: number[];
+    roundabout_exits?: boolean;
+    skip_segments?: number[];
+    supress_warnings?: boolean;
+    units?: DirectionsUnits;
+    geometry?: boolean;
+    bearings?: number[][];
+    maximum_speed?: number;
 }
 
 type BoundingBox = [number, number, number, number];
@@ -182,22 +182,61 @@ type DirectionsSummary = {
 
 type DirectionsStep = DirectionsSummary & {
     type: DirectionsInstructionType;
-    instruction: string;
+    instruction?: string;
     name: string;
     waypoints: [number, number];
+    maneuver?: {
+        location: Position;
+        bearing_before: number;
+        bearing_after: number;
+    }
 }
 
 type DirectionsSegment = DirectionsSummary & {
     steps: DirectionsStep[];
+    avgspeed?: number;
+    detourfactor?: number;
+    percentage?: number;
+}
+
+interface DirectionsExtra {
+    values: [ number, number, number ][];
+    summary: {
+        value: number;
+        distance: number;
+        amount: number;
+    }[];
+}
+
+interface DirectionsExtras {
+    steepness?: DirectionsExtra;
+    suitability?: DirectionsExtra;
+    surface?: DirectionsExtra;
+    waycategory?: DirectionsExtra;
+    waytype?: DirectionsExtra;
+    tollways?: DirectionsExtra;
+    traildifficulty?: DirectionsExtra;
+    osmid?: DirectionsExtra;
+    roadaccessrestrictions?: DirectionsExtra;
+    countryinfo?: DirectionsExtra;
+    green?: DirectionsExtra;
+    noise?: DirectionsExtra;
+}
+
+interface DirectionsWarnings {
+    code: number;
+    message: string;
 }
 
 interface DirectionsRoute {
     summary: DirectionsSummary;
     segments: DirectionsSegment[];
     bbox: BoundingBox;
-    geometry: string;
+    geometry?: string;
     way_points: [number, number];
     legs: unknown[];
+    extras?: DirectionsExtras;
+    warnings?: DirectionsWarnings[];
 }
 
 type DirectionsResponsePartial = Metadata & {
@@ -221,6 +260,8 @@ interface DirectionsProperties {
     segments: DirectionsSegment[];
     way_points: [number, number];
     summary: DirectionsSummary;
+    extras?: DirectionsExtras;
+    warnings?: DirectionsWarnings[];
 }
 
 type DirectionsResponseGeoJSON = DirectionsResponsePartial & FeatureCollection<LineString, DirectionsProperties>;
@@ -249,12 +290,15 @@ interface IsochronesProperties {
     group_index: number;
     value: number;
     center: Position;
+    area?: number;
+    reachfactor?: number;
+    total_pop?: number;
 }
 
 type IsochronesQuery = {
     locations: Position[];
     range: [number, number];
-    attributes?: IsochronesAttributes;
+    attributes?: IsochronesAttributes[];
     id?: string;
     intersections?: boolean;
     interval?: number;
@@ -273,6 +317,41 @@ type IsochronesResponse = Metadata & FeatureCollection<Polygon, IsochronesProper
             profile: Profile
         }
     }
+}
+
+enum MatrixMetrics {
+    DISTANCE = 'distance',
+    DURATION = 'duration'
+}
+
+type MatrixQuery = {
+    locations: Position[];
+    destinations?: number[];
+    id?: string;
+    metrics?: MatrixMetrics;
+    resolve_locations?: boolean;
+    sources?: number[];
+    units?: DirectionsUnits;
+}
+
+interface MatrixLocation {
+    location: Position;
+    snapped_distance: number;
+    name?: string;
+}
+
+type MatrixResponse = Metadata & {
+    metadata: {
+        service: 'matrix';
+        query: MatrixQuery & {
+            profile: Profile;
+            responseType: 'json';
+        }
+    }
+} & {
+    durations: number[][];
+    destinations: MatrixLocation[];
+    sources: MatrixLocation[];
 }
 
 enum Profile {
@@ -301,6 +380,11 @@ export default class Openrouteservice {
             units: DirectionsUnits,
             format: DirectionsFormat,
             instructionType: DirectionsInstructionType
+        },
+        isochrones: {
+            attributes: IsochronesAttributes,
+            locationType: IsochronesLocationType,
+            rangeType: IsochronesRangeType
         }
     }
 
@@ -354,10 +438,18 @@ export default class Openrouteservice {
 
     getIsochrones = async (profile: Profile, query: IsochronesQuery): Promise<IsochronesResponse> => 
         this.orsFetch(
-            '/v2/isochrones' + profile,
+            '/v2/isochrones/' + profile,
             true,
             JSON.stringify(query)
         );
+
+    getMatrix = async (profile: Profile, query: MatrixQuery): Promise<MatrixResponse> =>
+        this.orsFetch(
+            '/v2/matrix/' + profile,
+            true,
+            JSON.stringify(query)
+        );
+
 
     static decodePolyline(encodedPolyline: string, includeElevation?: boolean): Position[] {
         const points = [];
