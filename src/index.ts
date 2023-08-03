@@ -9,22 +9,33 @@ if (!API_KEY)
 (async () => {
     const ors = new Openrouteservice(API_KEY);
     // const directions = await ors.getBasicDirections(
-    //     Openrouteservice.profiles.DRIVING_CAR, 
+    //     Openrouteservice.options.profiles.DRIVING_CAR, 
     //     [-121.86592918628558, 37.41513158647777], 
     //     [-121.86597210162844, 37.424061505151634]
     // );
-    const directions = await ors.getDirections(
+    // const directions = await ors.getDirections(
+    //     Openrouteservice.options.profiles.DRIVING_CAR,
+    //     Openrouteservice.options.directions.format.GEOJSON,
+    //     {
+    //         coordinates: [
+    //             [-121.86592918628558, 37.41513158647777],
+    //             [-121.86597210162844, 37.424061505151634]
+    //         ]
+    //     }
+    // );
+    
+    const isochrones = await ors.getIsochrones(
         Openrouteservice.options.profiles.DRIVING_CAR,
-        Openrouteservice.options.directions.format.GEOJSON,
         {
-            coordinates: [
+            locations: [
                 [-121.86592918628558, 37.41513158647777],
                 [-121.86597210162844, 37.424061505151634]
-            ]
+            ],
+            range: [300,200]
         }
     );
 
     // console.log(Openrouteservice.decodePolyline(directions.routes[0].geometry, true))
-    console.log(directions.features)
+    console.log(isochrones.features[0].geometry)
     // console.dir(directions, { depth: Infinity })
 })();

@@ -1,9 +1,8 @@
-import { FeatureCollection, LineString, Position } from "geojson";
+import { FeatureCollection, LineString, Polygon, Position } from "geojson";
 
 type Metadata = {
     metadata: {
         attribution: string;
-        service: 'routing';
         timestamp: number;
         engine: {
             version: string;
@@ -13,8 +12,9 @@ type Metadata = {
     }
 }
 
-type BasicDirectionsResponse = FeatureCollection & Metadata & {
+type BasicDirectionsResponse = FeatureCollection<LineString, DirectionsProperties> & Metadata & {
     metadata: {
+        service: 'routing';
         query: {
             coordinates: [ Position, Position ];
             profile: Profile;
@@ -95,6 +95,54 @@ enum DirectionsFormat {
     GEOJSON = 'geojson'
 }
 
+interface DirectionsOptions {
+    avoid_features?: DirectionsFeatures[];
+    avoid_borders?: DirectionsBorders;
+    avoid_countries?: number[];
+    avoid_polygons?: {
+        empty: boolean;
+    }
+    round_trip?: {
+        length?: number;
+        points?: number;
+        seed?: number;
+    }
+    vehicle_type?: DirectionsVehicleType;
+    profile_params?: {
+        weightings?: {
+            steepness_difficulty?: number;
+            green?: number;
+            quiet?: number;
+            shadow?: number;
+        }
+        restrictions?: {
+            length?: number;
+            width?: number;
+            height?: number;
+            axleload?: number;
+            weight?: number;
+            hazmat?: boolean;
+            surface_type?: string;
+            track_type?: string;
+            smoothness_type?: DirectionsSmoothness;
+            maximum_sloped_kerb?: number;
+            maximum_incline?: number;
+            minimum_width?: number;
+        },
+        surface_quality_known?: boolean;
+        allow_unsuitable?: boolean;
+    }
+    preference?: DirectionsPreference;
+    radiuses?: number[];
+    roundabout_exits?: boolean;
+    skip_segments?: number[];
+    supress_warnings?: boolean;
+    units?: DirectionsUnits;
+    geometry?: boolean;
+    bearings?: number[][];
+    maximum_speed?: number;
+}
+
 type DirectionsQuery = {
     coordinates: Position[];
     alternative_routes?: {
@@ -112,53 +160,7 @@ type DirectionsQuery = {
     instructions_format?: string;
     language?: string;
     maneuvers?: boolean;
-    options?: {
-        avoid_features?: DirectionsFeatures[];
-        avoid_borders?: DirectionsBorders;
-        avoid_countries?: number[];
-        avoid_polygons?: {
-            empty: boolean;
-        }
-        round_trip?: {
-            lengt?: number;
-            points?: number;
-            seed?: number;
-        }
-        vehicle_type?: DirectionsVehicleType;
-        profile_params?: {
-            weightings?: {
-                steepness_difficulty?: number;
-                green?: number;
-                quiet?: number;
-                shadow?: number;
-            }
-            restrictions?: {
-                length?: number;
-                width?: number;
-                height?: number;
-                axleload?: number;
-                weight?: number;
-                hazmat?: boolean;
-                surface_type?: string;
-                track_type?: string;
-                smoothness_type?: DirectionsSmoothness;
-                maximum_sloped_kerb?: number;
-                maximum_incline?: number;
-                minimum_width?: number;
-            },
-            surface_quality_known?: boolean;
-            allow_unsuitable?: boolean;
-        }
-        preference?: DirectionsPreference;
-        radiuses?: number[];
-        roundabout_exits?: boolean;
-        skip_segments?: number[];
-        supress_warnings?: boolean;
-        units?: DirectionsUnits;
-        geometry?: boolean;
-        bearings?: number[][];
-        maximum_speed?: number;
-    }
+    options?: DirectionsOptions;
 }
 
 type BoundingBox = [number, number, number, number];
@@ -200,6 +202,7 @@ interface DirectionsRoute {
 
 type DirectionsResponsePartial = Metadata & {
     metadata: {
+        service: 'routing';
         query: DirectionsQuery & {
             profile: Profile;
             format: DirectionsFormat;
@@ -225,6 +228,52 @@ type DirectionsResponseGeoJSON = DirectionsResponsePartial & FeatureCollection<L
 type DirectionsResponseGPX = string;
 
 type DirectionsResponse = DirectionsResponseJSON | DirectionsResponseGeoJSON | DirectionsResponseGPX;
+
+enum IsochronesAttributes {
+    AREA = 'area',
+    REACH_FACTOR = 'reachfactor',
+    TOTAL_POPULATION = 'total_pop'
+}
+
+enum IsochronesLocationType {
+    START = 'start',
+    DESTINATION = 'destination'
+}
+
+enum IsochronesRangeType {
+    TIME = 'time',
+    DISTANCE = 'distance'
+}
+
+interface IsochronesProperties {
+    group_index: number;
+    value: number;
+    center: Position;
+}
+
+type IsochronesQuery = {
+    locations: Position[];
+    range: [number, number];
+    attributes?: IsochronesAttributes;
+    id?: string;
+    intersections?: boolean;
+    interval?: number;
+    location_type?: IsochronesLocationType;
+    options?: DirectionsOptions;
+    range_type?: IsochronesRangeType;
+    smoothing?: number;
+    areaUnits?: DirectionsUnits;
+    units?: DirectionsUnits;
+}
+
+type IsochronesResponse = Metadata & FeatureCollection<Polygon, IsochronesProperties> & {
+    metadata: {
+        service: 'isochrones';
+        query: IsochronesQuery & {
+            profile: Profile
+        }
+    }
+}
 
 enum Profile {
     DRIVING_CAR = 'driving-car',
@@ -302,6 +351,13 @@ export default class Openrouteservice {
             JSON.stringify(query)
         );
     }
+
+    getIsochrones = async (profile: Profile, query: IsochronesQuery): Promise<IsochronesResponse> => 
+        this.orsFetch(
+            '/v2/isochrones' + profile,
+            true,
+            JSON.stringify(query)
+        );
 
     static decodePolyline(encodedPolyline: string, includeElevation?: boolean): Position[] {
         const points = [];
