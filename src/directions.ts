@@ -1,5 +1,5 @@
 import { FeatureCollection, LineString, Position } from "geojson";
-import { Metadata, Profile, BoundingBox } from "./common";
+import { Metadata, Profile, BoundingBox, Warnings } from "./common.js";
 
 export type BasicDirectionsResponse = FeatureCollection<LineString, DirectionsProperties> & {
     metadata: Metadata & {
@@ -167,7 +167,7 @@ export type DirectionsSummary = {
     duration: number;
 }
 
-export type DirectionsStep = DirectionsSummary & {
+type DirectionsStep = DirectionsSummary & {
     type: DirectionsInstructionType;
     instruction?: string;
     name: string;
@@ -179,14 +179,14 @@ export type DirectionsStep = DirectionsSummary & {
     }
 }
 
-export type DirectionsSegment = DirectionsSummary & {
+type DirectionsSegment = DirectionsSummary & {
     steps: DirectionsStep[];
     avgspeed?: number;
     detourfactor?: number;
     percentage?: number;
 }
 
-export interface DirectionsExtra {
+interface DirectionsExtra {
     values: [ number, number, number ][];
     summary: {
         value: number;
@@ -195,7 +195,7 @@ export interface DirectionsExtra {
     }[];
 }
 
-export interface DirectionsExtras {
+interface DirectionsExtras {
     steepness?: DirectionsExtra;
     suitability?: DirectionsExtra;
     surface?: DirectionsExtra;
@@ -210,12 +210,7 @@ export interface DirectionsExtras {
     noise?: DirectionsExtra;
 }
 
-export interface DirectionsWarnings {
-    code: number;
-    message: string;
-}
-
-export interface DirectionsRoute {
+interface DirectionsRoute {
     summary: DirectionsSummary;
     segments: DirectionsSegment[];
     bbox: BoundingBox;
@@ -223,10 +218,10 @@ export interface DirectionsRoute {
     way_points: [number, number];
     legs: unknown[];
     extras?: DirectionsExtras;
-    warnings?: DirectionsWarnings[];
+    warnings?: Warnings[];
 }
 
-export type DirectionsResponsePartial = {
+type DirectionsResponsePartial = {
     metadata: Metadata & {
         service: 'routing';
         query: DirectionsQuery & {
@@ -241,14 +236,14 @@ export type DirectionsResponseJSON = DirectionsResponsePartial & {
     routes: DirectionsRoute[];
 }
 
-export interface DirectionsProperties {
+interface DirectionsProperties {
     transfers: number;
     fare: number;
     segments: DirectionsSegment[];
     way_points: [number, number];
     summary: DirectionsSummary;
     extras?: DirectionsExtras;
-    warnings?: DirectionsWarnings[];
+    warnings?: Warnings[];
 }
 
 export type DirectionsResponseGeoJSON = DirectionsResponsePartial & FeatureCollection<LineString, DirectionsProperties>;

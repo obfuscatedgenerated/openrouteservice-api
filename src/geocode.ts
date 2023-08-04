@@ -1,6 +1,5 @@
 import { FeatureCollection, Point } from "geojson";
-import { Metadata } from "./common";
-import { DirectionsWarnings } from "./directions";
+import { Metadata, Warnings } from "./common.js";
 
 export enum GeocodeSearchSource {
     OPENSTREETMAP = 'osm',
@@ -79,12 +78,11 @@ export type GeocodeResponse = FeatureCollection<Point, GeocodeProperties> & {
             parsed_text?: {
                 subject: string;
             }
-            warnings?: DirectionsWarnings[];
+            warnings?: Warnings[];
         }
     }
 }
-
-export interface GeocodeProperties {
+interface GeocodeProperties {
     id: string;
     gid: string;
     layer: string;

@@ -1,5 +1,5 @@
 import { Position, Polygon, Point, LineString, FeatureCollection } from "geojson";
-import { Metadata } from "./common";
+import { Metadata } from "./common.js";
 
 export enum POIRequestType {
     PLACES_OF_INTEREST = 'pois',
@@ -31,7 +31,7 @@ export type POIQuery = {
     sortby?: POISortBy;
 }
 
-export type POIInformation = {
+type POIInformation = {
     information: Metadata & {
         query: POIQuery;
     }

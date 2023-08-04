@@ -24,3 +24,8 @@ export enum Profile {
     FOOT_HIKING = 'foot-hiking',
     WHEELCHAIR = 'wheelchair'
 }
+
+export interface Warnings {
+    code: number;
+    message: string;
+}

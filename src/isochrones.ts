@@ -1,6 +1,6 @@
 import { Position, FeatureCollection, Polygon } from "geojson";
-import { Metadata, Profile } from "./common";
-import { DirectionsOptions, DirectionsUnits } from "./directions";
+import { Metadata, Profile } from "./common.js";
+import { DirectionsOptions, DirectionsUnits } from "./directions.js";
 
 export enum IsochronesAttributes {
     AREA = 'area',
@@ -18,7 +18,7 @@ export enum IsochronesRangeType {
     DISTANCE = 'distance'
 }
 
-export interface IsochronesProperties {
+interface IsochronesProperties {
     group_index: number;
     value: number;
     center: Position;

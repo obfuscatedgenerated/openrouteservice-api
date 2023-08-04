@@ -1,12 +1,13 @@
-import { flatten, unflatten } from "flat";
+import flat from "flat";
+const { flatten, unflatten } = flat;
 import { LineString, Point, Position } from "geojson";
-import { Profile } from "./common";
-import { BasicDirectionsResponse, DirectionsFormat, DirectionsQuery, DirectionsResponseJSON, DirectionsResponseGeoJSON, DirectionsResponseGPX, DirectionsResponse } from "./directions";
-import { ElevationResponsePointGeoJSON, ElevationResponseLineGeoJSON, ElevationResponsePoint, ElevationResponseLine, ElevationResponseEncodedPolyline } from "./elevation";
-import { GeocodeStructuredQuery, GeocodeQuery, GeocodeResponse, GeocodeReverseQuery } from "./geocode";
-import { IsochronesQuery, IsochronesResponse } from "./isochrones";
-import { MatrixQuery, MatrixResponse } from "./matrix";
-import { POIQuery, POIRequestType, POIResponsePOIs, POIResponseStats, POIResponseList, POIResponse } from "./poi";
+import { Profile } from "./common.js";
+import { BasicDirectionsResponse, DirectionsFormat, DirectionsQuery, DirectionsResponseJSON, DirectionsResponseGeoJSON, DirectionsResponseGPX, DirectionsResponse } from "./directions.js";
+import { ElevationResponsePointGeoJSON, ElevationResponseLineGeoJSON, ElevationResponsePoint, ElevationResponseLine, ElevationResponseEncodedPolyline } from "./elevation.js";
+import { GeocodeStructuredQuery, GeocodeQuery, GeocodeResponse, GeocodeReverseQuery } from "./geocode.js";
+import { IsochronesQuery, IsochronesResponse } from "./isochrones.js";
+import { MatrixQuery, MatrixResponse } from "./matrix.js";
+import { POIQuery, POIRequestType, POIResponsePOIs, POIResponseStats, POIResponseList, POIResponse } from "./poi.js";
 
 export default class Openrouteservice {
     private apiKey: string;
@@ -187,6 +188,14 @@ export default class Openrouteservice {
             params
         );
     }
+
+    // async getOptimization(query: OptimizationQuery) {
+    //     return this.orsFetch(
+    //         '/optimization',
+    //         true,
+    //         JSON.stringify(query)
+    //     )
+    // }
 
     static decodePolyline(encodedPolyline: string, includeElevation?: boolean): Position[] {
         const points = [];

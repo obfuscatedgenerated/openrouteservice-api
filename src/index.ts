@@ -1,3 +1,3 @@
-import Openrouteservice from "./Openrouteservice";
+import Openrouteservice from "./Openrouteservice.js";
 
 export default Openrouteservice;

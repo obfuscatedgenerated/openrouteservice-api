@@ -1,5 +1,5 @@
 import { Point, LineString, Position } from "geojson";
-import { Metadata } from "./common";
+import { Metadata } from "./common.js";
 
 export type ElevationResponsePointGeoJSON = Metadata & {
     geometry: Point;

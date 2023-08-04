@@ -1,8 +1,9 @@
 import 'dotenv/config';
-import Openrouteservice from './Openrouteservice';
-import { Profile } from './common';
-import { DirectionsFormat } from './directions';
-import { POIRequestType } from './poi';
+import Openrouteservice from './Openrouteservice.js';
+import { Profile } from './common.js';
+import { DirectionsAttributes, DirectionsExtraInfo, DirectionsFormat } from './directions.js';
+import { POIRequestType } from './poi.js';
+import { IsochronesAttributes } from './isochrones.js';
 
 const API_KEY = process.env.OPENROUTESERVICE_API_KEY;
 if (!API_KEY)
@@ -26,16 +27,16 @@ if (!API_KEY)
     //             [-121.86597210162844, 37.424061505151634]
     //         ],
     //         // attributes: [
-    //         //     Openrouteservice.options.directions.attributes.AVERAGE_SPEED
+    //         //     DirectionsAttributes.AVERAGE_SPEED
     //         // ],
     //         // maneuvers: true,
     //         // extra_info: [
-    //         //     Openrouteservice.options.directions.extraInfo.COUNTRY_INFO,
-    //         //     Openrouteservice.options.directions.extraInfo.GREEN,
-    //         //     Openrouteservice.options.directions.extraInfo.NOISE,
-    //         //     Openrouteservice.options.directions.extraInfo.TOLLWAYS,
-    //         //     Openrouteservice.options.directions.extraInfo.ROAD_ACCESS_RESTRICTIONS,
-    //         //     Openrouteservice.options.directions.extraInfo.CSV
+    //         //     DirectionsExtraInfo.COUNTRY_INFO,
+    //         //     DirectionsExtraInfo.GREEN,
+    //         //     DirectionsExtraInfo.NOISE,
+    //         //     DirectionsExtraInfo.TOLLWAYS,
+    //         //     DirectionsExtraInfo.ROAD_ACCESS_RESTRICTIONS,
+    //         //     DirectionsExtraInfo.CSV
     //         // ]
     //     }
     // );
@@ -55,7 +56,7 @@ if (!API_KEY)
     //         ],
     //         range: [300,200],
     //         // attributes: [
-    //         //     Openrouteservice.options.isochrones.attributes.AREA
+    //         //     IsochronesAttributes.AREA
     //         // ]
     //     }
     // );

@@ -1,6 +1,6 @@
 import { Position } from "geojson";
-import { Metadata, Profile } from "./common";
-import { DirectionsUnits } from "./directions";
+import { Metadata, Profile } from "./common.js";
+import { DirectionsUnits } from "./directions.js";
 
 export enum MatrixMetrics {
     DISTANCE = 'distance',
@@ -17,7 +17,7 @@ export type MatrixQuery = {
     units?: DirectionsUnits;
 }
 
-export interface MatrixLocation {
+interface MatrixLocation {
     location: Position;
     snapped_distance: number;
     name?: string;
