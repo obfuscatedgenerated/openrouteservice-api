@@ -1,6 +1,6 @@
 {
   "name": "openrouteservice",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An API for Openrouteservice",
   "main": "dist/index.js",
   "type": "module",
@@ -15,8 +15,7 @@
   "bugs": "https://github.com/brianhvo02/openrouteservice-api/issues",
   "license": "GPL-3.0",
   "dependencies": {
-    "flat": "^5.0.2",
-    "openrouteservice-js": "^0.3.0"
+    "flat": "^5.0.2"
   },
   "devDependencies": {
     "@types/flat": "^5.0.2",
