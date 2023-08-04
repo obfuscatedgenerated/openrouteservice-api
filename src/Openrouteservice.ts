@@ -1,11 +1,11 @@
 import { flatten, unflatten } from "flat";
-import { FeatureCollection, LineString, Point, Polygon, Position } from "geojson";
+import { FeatureCollection, Geometry, LineString, Point, Polygon, Position } from "geojson";
 
 type Metadata = {
     version?: string;
     attribution: string;
     timestamp: number;
-    engine: {
+    engine?: {
         version: string;
         build_date?: string;
         graph_date?: string;
@@ -502,6 +502,108 @@ type GeocodeReverseQuery = {
     layers?: GeocodeSearchLayer[];
 }
 
+enum POIRequestType {
+    PLACES_OF_INTEREST = 'pois',
+    STATISTICS = 'stats',
+    LIST = 'list'
+}
+
+enum POISortBy {
+    CATEGORY = 'category',
+    DISTANCE = 'distance'
+}
+
+type POIQuery = {
+    request: POIRequestType;
+    geometry: {
+        bbox?: [Position, Position],
+        geojson?: Polygon | Point | LineString;
+        buffer?: number;
+    }
+    filters?: {
+        category_group_ids?: number[];
+        category_ids?: number[];
+        name?: string[];
+        wheelchair?: (string | boolean)[];
+        smoking?: (string | boolean)[];
+        fee?: boolean[];
+    }
+    limit?: number;
+    sortby?: POISortBy;
+}
+
+type POIInformation = {
+    information: Metadata & {
+        query: POIQuery;
+    }
+}
+
+type POIResponsePOIs = FeatureCollection<Point, POIProperties> & POIInformation;
+
+type POIResponseStats = {
+    places: {
+        total_count: number;
+    } & {
+        [category: string]: {
+            group_id: number;
+            categories: {
+                [category: string]: {
+                    count: number;
+                    category_id: number;
+                }
+            }
+            total_count: number;
+        }
+    }
+} & POIInformation;
+
+type POIResponseList = {
+    [category: string]: {
+        id: number;
+        children: {
+            [category: string]: number;
+        }
+    }
+}
+
+type POIResponse = POIResponsePOIs | POIResponseStats | POIResponseList;
+
+interface POIProperties {
+    osm_id: number;
+    osm_type: number;
+    distance: number;
+    category_ids: {
+        [id: string]: {
+            category_name: string;
+            category_group: string;
+        }
+    }
+    osm_tags: {
+        name: string;
+        wheelchair: string;
+    }
+}
+
+type ElevationResponsePointGeoJSON = Metadata & {
+    geometry: Point;
+}
+
+type ElevationResponseLineGeoJSON = Metadata & {
+    geometry: LineString;
+}
+
+type ElevationResponsePoint = Metadata & {
+    geometry: Position;
+}
+
+type ElevationResponseLine = Metadata & {
+    geometry: Position[];
+}
+
+type ElevationResponseEncodedPolyline = Metadata & {
+    geometry: string;
+}
+
 enum Profile {
     DRIVING_CAR = 'driving-car',
     DRIVING_HGV = 'driving-hgv',
@@ -533,6 +635,10 @@ export default class Openrouteservice {
             attributes: IsochronesAttributes,
             locationType: IsochronesLocationType,
             rangeType: IsochronesRangeType
+        },
+        pois: {
+            requestType: POIRequestType,
+            soryBy: POISortBy
         }
     }
 
@@ -603,8 +709,6 @@ export default class Openrouteservice {
         return res;
     }
 
-    async getGeocodeSearch(query: string, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse>;
-    async getGeocodeSearch(query: GeocodeStructuredQuery, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse>;
     async getGeocodeSearch(query: string | GeocodeStructuredQuery, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse> {
         const structured = typeof query !== 'string';
         
@@ -661,6 +765,60 @@ export default class Openrouteservice {
             false,
             new URLSearchParams(params).toString()
         ).then(Openrouteservice.unflattenResult);
+    }
+
+    async getPOIs(query: POIQuery & { request: POIRequestType.PLACES_OF_INTEREST }): Promise<POIResponsePOIs>;
+    async getPOIs(query: POIQuery & { request: POIRequestType.STATISTICS }): Promise<POIResponseStats>;
+    async getPOIs(query: POIQuery & { request: POIRequestType.LIST }): Promise<POIResponseList>;
+    async getPOIs(query: POIQuery): Promise<POIResponse> {
+        return this.orsFetch(
+            '/pois',
+            true,
+            JSON.stringify(query)
+        );
+    }
+
+    async getElevation(geometry: Point | Position, outputFormat: 'geojson'): Promise<ElevationResponsePointGeoJSON>;
+    async getElevation(geometry: LineString | Position[] | string, outputFormat: 'geojson'): Promise<ElevationResponseLineGeoJSON>;
+    async getElevation(geometry: Point | Position, outputFormat: 'point'): Promise<ElevationResponsePoint>;
+    async getElevation(geometry: LineString | Position[] | string, outputFormat: 'polyline'): Promise<ElevationResponseLine>;
+    async getElevation(geometry: LineString | Position[] | string, outputFormat: 'encodedpolyline5'): Promise<ElevationResponseEncodedPolyline>;
+    async getElevation(geometry: Point | LineString | Position | Position[] | string, outputFormat: 'geojson' | 'point' | 'polyline' | 'encodedpolyline5') {
+        const isPoint = (
+            typeof geometry === 'object' 
+                && 
+            !Array.isArray(geometry) 
+                && 
+            geometry.type === 'Point'
+        ) || (
+            Array.isArray(geometry) 
+                && 
+            typeof geometry[0] === 'number'
+        );
+        const isGeoJSON = typeof geometry === 'object' && 'type' in geometry;
+        const isEncodedPolyline = typeof geometry === 'string';
+        const endpoint = `/elevation/${isPoint ? 'point' : 'line'}`;
+        const params = (isPoint && !isGeoJSON)
+            ? new URLSearchParams({
+                geometry: geometry.join(','),
+                format_out: outputFormat
+            }).toString() : JSON.stringify({
+                format_in: (
+                    isEncodedPolyline
+                        ? 'encodedpolyline5'
+                        : isGeoJSON
+                            ? 'geojson'
+                            : isPoint
+                                ? 'point'
+                                : 'polyline'
+                ), geometry
+            });
+            
+        return this.orsFetch(
+            endpoint,
+            !(isPoint && !isGeoJSON),
+            params
+        );
     }
 
     static decodePolyline(encodedPolyline: string, includeElevation?: boolean): Position[] {

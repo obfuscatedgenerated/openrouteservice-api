@@ -7,11 +7,12 @@ if (!API_KEY)
 
 (async () => {
     const ors = new Openrouteservice(API_KEY);
-    // const directions = await ors.getBasicDirections(
+    // const basicDirections = await ors.getBasicDirections(
     //     Openrouteservice.options.profiles.DRIVING_CAR, 
     //     [-121.86592918628558, 37.41513158647777], 
     //     [-121.86597210162844, 37.424061505151634]
     // );
+    // console.log(basicDirections);
 
     // const directions = await ors.getDirections(
     //     Openrouteservice.options.profiles.DRIVING_CAR,
@@ -35,9 +36,12 @@ if (!API_KEY)
     //         // ]
     //     }
     // );
-
-    // console.log(directions)
-    // console.log(Openrouteservice.decodePolyline(directions.routes[0].geometry, true))
+    // console.log(directions);
+    // console.log(
+    //     directions.routes[0].geometry
+    //         && 
+    //     Openrouteservice.decodePolyline(directions.routes[0].geometry, true)
+    // );
     
     // const isochrones = await ors.getIsochrones(
     //     Openrouteservice.options.profiles.DRIVING_CAR,
@@ -52,7 +56,6 @@ if (!API_KEY)
     //         // ]
     //     }
     // );
-
     // console.log(isochrones);
 
     // const matrix = await ors.getMatrix(
@@ -66,10 +69,8 @@ if (!API_KEY)
     //         // resolve_locations: true
     //     }
     // );
-
     // type IndexedIndexedType = { [key: string]: IndexedType }
     // type IndexedType = { [key: string]: number }
-
     // const formatedMatrix = matrix.sources.reduce((sourceObj: IndexedIndexedType, source, i) => {
     //     const sourceLocation = source.name ?? source.location.join(', ');
     //     sourceObj[sourceLocation] = matrix.destinations.reduce((destinationObj: IndexedType, destination, j) => {
@@ -79,7 +80,6 @@ if (!API_KEY)
     //     }, {})
     //     return sourceObj;
     // }, {})
-
     // console.table(formatedMatrix);
 
     // const geocode = await ors.getGeocodeSearch('Daeho');
@@ -100,6 +100,20 @@ if (!API_KEY)
     //         lat: 37.795153
     //     }
     // });
-
     // console.log(reverseGeocode.features[0]);
+
+    // const pois = await ors.getPOIs({
+    //     request: Openrouteservice.options.pois.requestType.PLACES_OF_INTEREST,
+    //     geometry: {
+    //         geojson: {
+    //             type: 'Point',
+    //             coordinates: [-122.402721, 37.795153],
+    //         },
+    //         buffer: 100
+    //     }
+    // });
+    // console.log(pois);
+
+    // const elevation = await ors.getElevation([ -121.86601, 37.41524 ], 'point');
+    // console.log(elevation.geometry);
 })();
