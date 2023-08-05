@@ -56,6 +56,7 @@ export type GeocodeQuery = Partial<{
         gid: string;
         country: string;
     }>;
+    size: number;
     sources: GeocodeSearchSource[];
     layers: GeocodeSearchLayer[];
 }>;
