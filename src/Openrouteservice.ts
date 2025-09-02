@@ -86,9 +86,11 @@ export default class Openrouteservice {
         }
 
         if (Array.isArray(dataToProcess.sources))
+            //@ts-ignore
             dataToProcess.sources = dataToProcess.sources.join(',');
 
         if (Array.isArray(dataToProcess.layers))
+            //@ts-ignore
             dataToProcess.layers = dataToProcess.layers.join(',');
 
         const params = flatten(dataToProcess);
@@ -96,18 +98,22 @@ export default class Openrouteservice {
         return this.orsFetch(
             '/geocode/search' + (structured ? '/structured' : ''),
             false,
+            //@ts-ignore
             new URLSearchParams(params).toString()
         ).then(Openrouteservice.unflattenResult);
     }
 
     async getGeocodeAutocomplete(text: string, query?: GeocodeQuery): Promise<GeocodeResponse> {
-        query = (query || {}) as {text: string};
+        query = query || {};
+        //@ts-ignore
         query.text = text;
 
         if (Array.isArray(query.sources))
+            //@ts-ignore
             query.sources = query.sources.join(',');
 
         if (Array.isArray(query.layers))
+            //@ts-ignore
             query.layers = query.layers.join(',');
 
         const params = flatten(query);
@@ -115,15 +121,18 @@ export default class Openrouteservice {
         return this.orsFetch(
             '/geocode/autocomplete',
             false,
+            //@ts-ignore
             new URLSearchParams(params).toString()
         ).then(Openrouteservice.unflattenResult);
     }
 
     async getGeocodeReverse(query: GeocodeReverseQuery): Promise<GeocodeResponse> {
         if (Array.isArray(query.sources))
+            //@ts-ignore
             query.sources = query.sources.join(',');
 
         if (Array.isArray(query.layers))
+            //@ts-ignore
             query.layers = query.layers.join(',');
 
         const params = flatten(query);
@@ -131,6 +140,7 @@ export default class Openrouteservice {
         return this.orsFetch(
             '/geocode/reverse',
             false,
+            //@ts-ignore
             new URLSearchParams(params).toString()
         ).then(Openrouteservice.unflattenResult);
     }
