@@ -80,19 +80,18 @@ export default class Openrouteservice {
     async getGeocodeSearch(query: string | GeocodeStructuredQuery, additionalQuery?: GeocodeQuery): Promise<GeocodeResponse> {
         const structured = typeof query !== 'string';
         
-        const params: any = flatten({
-            ...(structured ? query : {}),
+        const dataToProcess = {
+            ...(structured ? query : {text: query}),
             ...(additionalQuery ?? {})
-        });
+        }
 
-        if (!structured)
-            params.text = query;
+        if (Array.isArray(dataToProcess.sources))
+            dataToProcess.sources = dataToProcess.sources.join(',');
 
-        if (additionalQuery?.sources)
-            params.sources = additionalQuery.sources.join(',');
+        if (Array.isArray(dataToProcess.layers))
+            dataToProcess.layers = dataToProcess.layers.join(',');
 
-        if (additionalQuery?.layers)
-            params.layers = additionalQuery.layers.join(',');
+        const params = flatten(dataToProcess);
 
         return this.orsFetch(
             '/geocode/search' + (structured ? '/structured' : ''),
@@ -102,15 +101,16 @@ export default class Openrouteservice {
     }
 
     async getGeocodeAutocomplete(text: string, query?: GeocodeQuery): Promise<GeocodeResponse> {
-        const params: any = flatten(query ?? {});
+        query = query || {};
+        query.text = text;
 
-        params.text = text;
+        if (Array.isArray(query.sources))
+            dataToProcess.sources = dataToProcess.sources.join(',');
 
-        if (query?.sources)
-            params.sources = query.sources.join(',');
+        if (Array.isArray(query.layers))
+            dataToProcess.layers = dataToProcess.layers.join(',');
 
-        if (query?.layers)
-            params.layers = query.layers.join(',');
+        const params = flatten(query);
 
         return this.orsFetch(
             '/geocode/autocomplete',
@@ -120,13 +120,13 @@ export default class Openrouteservice {
     }
 
     async getGeocodeReverse(query: GeocodeReverseQuery): Promise<GeocodeResponse> {
-        const params: any = flatten(query);
+        if (Array.isArray(query.sources))
+            dataToProcess.sources = dataToProcess.sources.join(',');
 
-        if (query.sources)
-            params.sources = query.sources.join(',');
+        if (Array.isArray(query.layers))
+            dataToProcess.layers = dataToProcess.layers.join(',');
 
-        if (query.layers)
-            params.layers = query.layers.join(',');
+        const params = flatten(query);
 
         return this.orsFetch(
             '/geocode/reverse',
