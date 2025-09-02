@@ -101,14 +101,14 @@ export default class Openrouteservice {
     }
 
     async getGeocodeAutocomplete(text: string, query?: GeocodeQuery): Promise<GeocodeResponse> {
-        query = query || {};
+        query = (query || {}) as {text: string};
         query.text = text;
 
         if (Array.isArray(query.sources))
-            dataToProcess.sources = dataToProcess.sources.join(',');
+            query.sources = query.sources.join(',');
 
         if (Array.isArray(query.layers))
-            dataToProcess.layers = dataToProcess.layers.join(',');
+            query.layers = query.layers.join(',');
 
         const params = flatten(query);
 
@@ -121,10 +121,10 @@ export default class Openrouteservice {
 
     async getGeocodeReverse(query: GeocodeReverseQuery): Promise<GeocodeResponse> {
         if (Array.isArray(query.sources))
-            dataToProcess.sources = dataToProcess.sources.join(',');
+            query.sources = query.sources.join(',');
 
         if (Array.isArray(query.layers))
-            dataToProcess.layers = dataToProcess.layers.join(',');
+            query.layers = query.layers.join(',');
 
         const params = flatten(query);
 
